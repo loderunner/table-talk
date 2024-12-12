@@ -4,14 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "main": "dist-electron/main.js",
-  "build": {
-    "appId": "your.id",
-    "mac": {
-      "category": "your.app.category.type"
-    }
-  },
   "scripts": {
-    "lint": "eslint .",
+    "lint": "prettier --check . && eslint --max-warnings=0",
     "dev": "vite dev",
     "preview": "vite preview",
     "build": "vite build",
@@ -35,10 +29,15 @@
     "autoprefixer": "10.4.20",
     "electron": "33.2.1",
     "eslint": "9.16.0",
+    "eslint-config-prettier": "9.1.0",
+    "eslint-plugin-import": "2.31.0",
+    "eslint-plugin-react": "7.37.2",
     "eslint-plugin-react-hooks": "5.1.0",
     "eslint-plugin-react-refresh": "0.4.16",
     "globals": "15.13.0",
     "postcss": "8.4.49",
+    "prettier": "3.4.2",
+    "prettier-plugin-tailwindcss": "0.6.9",
     "tailwindcss": "3.4.16",
     "typescript": "5.7.2",
     "typescript-eslint": "8.18.0",
