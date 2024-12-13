@@ -1,8 +1,10 @@
 import Chat from './Chat';
+import { Header } from './Header';
 
 function App() {
   return (
-    <div className="size-full p-4">
+    <div className="flex size-full select-none flex-col">
+      <Header />
       <Chat />
     </div>
   );

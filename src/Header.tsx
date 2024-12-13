@@ -1,16 +1,15 @@
-import { Button } from '@headlessui/react';
+import { Database, Sliders } from '@phosphor-icons/react';
 
 export function Header() {
   return (
-    <header className="bg-primary text-primary-foreground py-4">
-      <div className="container mx-auto flex items-center justify-between">
-        <a href="/" className="flex items-center">
-          <h1 className="text-2xl font-bold">SQL Chatbot</h1>
-        </a>
-        <a href="/settings">
-          <Button>
-            <span>Settings</span>
-          </Button>
+    <header className="bg-black p-4 text-white">
+      <div className="flex items-center justify-between">
+        <h1 className="flex items-center gap-1 text-3xl font-bold">
+          <Database />
+          SQL Chatbot
+        </h1>
+        <a className="rounded-lg text-3xl" href="/settings">
+          <Sliders alt="Settings" />
         </a>
       </div>
     </header>

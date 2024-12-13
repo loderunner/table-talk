@@ -63,10 +63,8 @@ export default function Chat() {
   );
 
   return (
-    <div className="flex size-full flex-col gap-2">
-      <div className="select-none text-2xl font-bold">
-        Chat with your Database
-      </div>
+    <div className="flex min-h-0 flex-1 flex-col gap-2 p-4">
+      <div className="text-xl">Chat with your Database</div>
       <div className="flex-1 overflow-clip overflow-y-scroll">
         <div>
           {messages.map((message, index) => (
@@ -77,7 +75,7 @@ export default function Chat() {
               }`}
             >
               <div
-                className={`inline-block rounded-lg px-4 py-2 ${
+                className={`inline-block select-text rounded-lg px-4 py-2 ${
                   message.role === 'user' ? 'bg-gray-900' : 'bg-gray-300'
                 }`}
               >
