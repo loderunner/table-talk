@@ -1,5 +1,11 @@
+import Chat from './Chat';
+
 function App() {
-  return <>Hello World!</>;
+  return (
+    <div className="size-full p-4">
+      <Chat />
+    </div>
+  );
 }
 
 export default App;
