@@ -1,6 +1,7 @@
 import { Database, Sliders } from '@phosphor-icons/react';
+import { Link } from 'wouter';
 
-export function Header() {
+export default function Header() {
   return (
     <header className="bg-black p-4 text-white">
       <div className="flex items-center justify-between">
@@ -8,9 +9,13 @@ export function Header() {
           <Database />
           SQL Chatbot
         </h1>
-        <a className="rounded-lg text-3xl" href="/settings">
-          <Sliders alt="Settings" />
-        </a>
+        <Link
+          className="rounded-lg text-3xl"
+          href="settings"
+          aria-label="Settings"
+        >
+          <Sliders />
+        </Link>
       </div>
     </header>
   );

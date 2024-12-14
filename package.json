@@ -48,12 +48,14 @@
     "vite-tsconfig-paths": "5.1.4"
   },
   "dependencies": {
+    "@fastify/deepmerge": "2.0.0",
     "@headlessui/react": "2.2.0",
     "@phosphor-icons/react": "2.1.7",
     "electron-squirrel-startup": "1.0.1",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-markdown": "9.0.1",
-    "remark-gfm": "4.0.0"
+    "remark-gfm": "4.0.0",
+    "wouter": "3.3.5"
   }
 }

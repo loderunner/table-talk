@@ -92,7 +92,7 @@ export default function Chat() {
       </div>
       <div className="flex items-end gap-4">
         <Textarea
-          className="flex-grow resize-none rounded-lg border px-4 py-2 ring-gray-400 ring-offset-2 focus:outline-none focus:ring-2 disabled:bg-gray-50 disabled:text-gray-400"
+          className="flex-grow resize-none"
           placeholder="Ask a question about your database..."
           disabled={loading}
           rows={rows}
@@ -100,11 +100,7 @@ export default function Chat() {
           onChange={onChange}
           onKeyDown={onKeyDown}
         />
-        <Button
-          className="rounded-lg bg-gray-900 px-4 py-2 text-white hover:bg-gray-700 disabled:bg-gray-600 disabled:text-gray-100"
-          onClick={send}
-          disabled={loading}
-        >
+        <Button onClick={send} disabled={loading}>
           {loading ? 'Thinking...' : 'Send'}
         </Button>
       </div>
