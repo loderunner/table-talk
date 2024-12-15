@@ -14,7 +14,6 @@ export function setEndpointURL(url: string) {
 export async function pull(id: number, model: string) {
   const it: AbortableAsyncIterator<ProgressResponse> | undefined = undefined;
   function onAbort() {
-    console.log('abort', it);
     it?.abort();
   }
   ipcMain.handle(`ollama.pull.abort::${id}`, onAbort);

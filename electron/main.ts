@@ -20,15 +20,11 @@ function createWindow() {
     },
   });
 
-  if (process.env.NODE_ENV === 'development') {
-    mainWindow.loadURL('http://localhost:5173');
-  } else {
-    mainWindow.loadFile(path.join('dist/index.html'));
-  }
-
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
+
+  return mainWindow;
 }
 
 let requestId = 0;
@@ -42,7 +38,14 @@ app.on('ready', () => {
     return id;
   });
 
-  createWindow();
+  const window = createWindow();
+
+  if (process.env.VITE_DEV_SERVER_URL) {
+    window.loadURL(process.env.VITE_DEV_SERVER_URL);
+  } else {
+    // Load your file
+    window.loadFile('dist/index.html');
+  }
 });
 
 app.on('window-all-closed', () => {
