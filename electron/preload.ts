@@ -6,28 +6,28 @@ function setEndpointURL(url: string) {
   ipcRenderer.invoke('ollama.setEndpointURL', url);
 }
 
+async function pull(model: string, onProgress?: ProgressEventHandler) {
+  const id = await ipcRenderer.invoke('ollama.pull', model);
+
+  const subscription = (
+    _event: IpcRendererEvent,
+    progress: ProgressResponse,
+  ) => {
+    onProgress?.(progress);
+  };
+  ipcRenderer.on(`ollama.pull.progress::${id}`, subscription);
+
+  return () => {
+    ipcRenderer.removeListener(`ollama.pull.progress::${id}`, subscription);
+    ipcRenderer.invoke(`ollama.pull.abort::${id}`);
+  };
+}
+
 export type ProgressEventHandler = (progress: ProgressResponse) => void;
 
-let subscriptionId = 0;
 const ollamaBridge = {
   setEndpointURL,
-  onProgress(handler: ProgressEventHandler) {
-    const id = subscriptionId++;
-    const subscription = (
-      _event: IpcRendererEvent,
-      progress: ProgressResponse,
-    ) => {
-      console.log('subscription', id);
-      handler(progress);
-    };
-
-    ipcRenderer.on('ollama.pull.progress', subscription);
-
-    return () => {
-      console.log('unsubscribing', id);
-      ipcRenderer.removeListener('ollama.pull.progress', subscription);
-    };
-  },
+  pull,
 };
 
 export type Ollama = typeof ollamaBridge;

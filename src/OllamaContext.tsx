@@ -1,13 +1,8 @@
 /* eslint-disable react-refresh/only-export-components */
-import {
-  ReactNode,
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
+import { ReactNode, createContext, useContext, useState } from 'react';
 
 import { useSettings } from './SettingsContext';
+import { useAsyncEffect } from './useAsyncEffect';
 
 type OllamaState = {
   status: string;
@@ -22,26 +17,21 @@ type Props = {
 };
 
 export function OllamaProvider({ children }: Props) {
-  console.log('rendering');
   const [, , settings] = useSettings();
   const [status, setStatus] = useState('');
   const [completed, setCompleted] = useState<number>();
   const [total, setTotal] = useState<number>();
 
-  useEffect(() => {
-    console.log('useEffect');
-    const unsubscribe = ollama.onProgress((p) => {
-      console.log('onProgress');
+  useAsyncEffect(async () => {
+    ollama.setEndpointURL(settings.ollama.url);
+    const unsubscribe = await ollama.pull('llama3.2:1b', (p) => {
       setStatus(p.status);
       setCompleted(p.completed);
       setTotal(p.total);
     });
 
-    ollama.setEndpointURL(settings.ollama.url);
-
-    return () => {
-      console.log('unsubscribe');
-      unsubscribe();
+    return async () => {
+      await unsubscribe();
     };
   }, [settings.ollama.url]);
 

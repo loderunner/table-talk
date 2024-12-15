@@ -1,4 +1,7 @@
-import { Ollama } from 'ollama';
+import { ipcMain } from 'electron';
+
+import { Ollama, ProgressResponse } from 'ollama';
+import { AbortableAsyncIterator } from 'ollama/src/utils.js';
 
 import { mainWindow } from './main';
 
@@ -8,27 +11,26 @@ export function setEndpointURL(url: string) {
   client = new Ollama({ host: url });
 }
 
-export function pull(model: string) {
+export async function pull(id: number, model: string) {
+  const it: AbortableAsyncIterator<ProgressResponse> | undefined = undefined;
+  function onAbort() {
+    console.log('abort', it);
+    it?.abort();
+  }
+  ipcMain.handle(`ollama.pull.abort::${id}`, onAbort);
+
   try {
-    client.pull({ model, stream: true }).then(async (it) => {
-      for await (const progress of it) {
-        try {
-          mainWindow?.webContents.send('ollama.pull.progress', progress);
-        } catch (err) {
-          if (err instanceof Error) {
-            mainWindow?.webContents.send('ollama.error', err.message);
-            return;
-          }
-          mainWindow?.webContents.send('ollama.error', String(err));
-          return;
-        }
-      }
-    });
+    const it = await client.pull({ model, stream: true });
+    for await (const progress of it) {
+      mainWindow?.webContents.send(`ollama.pull.progress::${id}`, progress);
+    }
   } catch (err) {
     if (err instanceof Error) {
-      mainWindow?.webContents.send('ollama.error', err.message);
+      mainWindow?.webContents.send(`ollama.error::${id}`, err.message);
       return;
     }
-    mainWindow?.webContents.send('ollama.error', String(err));
+    mainWindow?.webContents.send(`ollama.error::${id}`, String(err));
+  } finally {
+    ipcMain.off(`ollama.pull.abort::${id}`, onAbort);
   }
 }

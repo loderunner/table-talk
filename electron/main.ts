@@ -31,10 +31,15 @@ function createWindow() {
   });
 }
 
+let requestId = 0;
 app.on('ready', () => {
   ipcMain.handle('ollama.setEndpointURL', (_event, url: string) => {
     ollama.setEndpointURL(url);
-    ollama.pull('llama3.2:1b');
+  });
+  ipcMain.handle('ollama.pull', (_event, model: string) => {
+    const id = requestId++;
+    ollama.pull(id, model);
+    return id;
   });
 
   createWindow();
