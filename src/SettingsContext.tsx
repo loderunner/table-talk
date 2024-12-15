@@ -1,13 +1,13 @@
 /* eslint-disable react-refresh/only-export-components */
+import newDeepmerge from '@fastify/deepmerge';
 import {
-  createContext,
   Dispatch,
   ReactNode,
   SetStateAction,
+  createContext,
   useContext,
   useState,
 } from 'react';
-import newDeepmerge from '@fastify/deepmerge';
 
 const deepmerge = newDeepmerge();
 

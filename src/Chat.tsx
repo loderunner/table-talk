@@ -1,11 +1,11 @@
 import { Button, Textarea } from '@headlessui/react';
 import {
-  useState,
-  useEffect,
-  useMemo,
-  useCallback,
   ChangeEventHandler,
   KeyboardEventHandler,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
 } from 'react';
 import Markdown from 'react-markdown';
 import remarkGFM from 'remark-gfm';
@@ -52,6 +52,7 @@ export default function Chat() {
     setInput('');
     setLoading(false);
   }, []);
+
   const onKeyDown = useCallback<KeyboardEventHandler<HTMLTextAreaElement>>(
     (e) => {
       if (e.code === 'Enter' && !e.shiftKey) {

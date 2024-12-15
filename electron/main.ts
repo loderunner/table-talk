@@ -1,7 +1,13 @@
-import { app, BrowserWindow } from 'electron';
-import * as path from 'path';
+import { BrowserWindow, app, ipcMain } from 'electron';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-let mainWindow: BrowserWindow | null;
+import * as ollama from './ollama';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+export let mainWindow: BrowserWindow | null;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -9,6 +15,9 @@ function createWindow() {
     height: 600,
     minHeight: 250,
     minWidth: 600,
+    webPreferences: {
+      preload: path.join(__dirname, './preload.mjs'),
+    },
   });
 
   if (process.env.NODE_ENV === 'development') {
@@ -22,7 +31,14 @@ function createWindow() {
   });
 }
 
-app.on('ready', createWindow);
+app.on('ready', () => {
+  ipcMain.handle('ollama.setEndpointURL', (_event, url: string) => {
+    ollama.setEndpointURL(url);
+    ollama.pull('llama3.2:1b');
+  });
+
+  createWindow();
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {

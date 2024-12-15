@@ -1,14 +1,15 @@
-import { useCallback, useState } from 'react';
-import { defaultSettings, useSettings } from './SettingsContext';
 import {
-  Field,
-  Label,
-  Input,
-  Fieldset,
-  Legend,
   Button,
+  Field,
+  Fieldset,
+  Input,
+  Label,
+  Legend,
 } from '@headlessui/react';
+import { useCallback, useState } from 'react';
 import { useLocation } from 'wouter';
+
+import { defaultSettings, useSettings } from './SettingsContext';
 
 export default function Settings() {
   const [, setLocation] = useLocation();
