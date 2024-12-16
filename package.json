@@ -13,6 +13,21 @@
     "package": "electron-forge package",
     "make": "electron-forge make"
   },
+  "dependencies": {
+    "@fastify/deepmerge": "2.0.0",
+    "@headlessui/react": "2.2.0",
+    "@phosphor-icons/react": "2.1.7",
+    "ai": "4.0.18",
+    "electron-squirrel-startup": "1.0.1",
+    "ollama": "0.5.11",
+    "ollama-ai-provider": "1.1.0",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "react-markdown": "9.0.1",
+    "rehype-highlight": "7.0.1",
+    "remark-gfm": "4.0.0",
+    "wouter": "3.3.5"
+  },
   "devDependencies": {
     "@electron-forge/cli": "7.6.0",
     "@electron-forge/maker-deb": "7.6.0",
@@ -46,19 +61,5 @@
     "vite": "6.0.3",
     "vite-plugin-electron": "0.29.0",
     "vite-tsconfig-paths": "5.1.4"
-  },
-  "dependencies": {
-    "@fastify/deepmerge": "2.0.0",
-    "@headlessui/react": "2.2.0",
-    "@phosphor-icons/react": "2.1.7",
-    "ai": "4.0.18",
-    "electron-squirrel-startup": "1.0.1",
-    "ollama": "0.5.11",
-    "ollama-ai-provider": "1.1.0",
-    "react": "19.0.0",
-    "react-dom": "19.0.0",
-    "react-markdown": "9.0.1",
-    "remark-gfm": "4.0.0",
-    "wouter": "3.3.5"
   }
 }

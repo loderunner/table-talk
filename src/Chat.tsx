@@ -8,6 +8,7 @@ import {
   useRef,
 } from 'react';
 import Markdown from 'react-markdown';
+import rehypeHighlight from 'rehype-highlight';
 import remarkGFM from 'remark-gfm';
 
 import { GenerateResponse } from '../electron/ollama';
@@ -110,8 +111,12 @@ export default function Chat() {
               }`}
             >
               <Markdown
-                className={`prose prose-high-contrast ${message.role === 'user' ? '!prose-invert' : ''}`}
+                className={`prose prose-high-contrast prose-code:before:content-none prose-code:after:content-none ${message.role === 'user' ? '!prose-invert' : ''}`}
                 remarkPlugins={[remarkGFM]}
+                rehypePlugins={[rehypeHighlight]}
+                components={{
+                  pre: (props) => <pre className="hljs" {...props} />,
+                }}
               >
                 {message.content}
               </Markdown>

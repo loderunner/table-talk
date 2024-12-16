@@ -4,8 +4,6 @@ import { defineConfig } from 'vite';
 import electron from 'vite-plugin-electron/simple';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
-const firstStartup = true;
-
 export default defineConfig({
   plugins: [
     Unfonts({

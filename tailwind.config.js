@@ -28,7 +28,7 @@ export default {
             '--tw-prose-links': colors.black,
             '--tw-prose-bold': colors.black,
             '--tw-prose-counters': colors.gray[500],
-            '--tw-prose-bullets': colors.white,
+            '--tw-prose-bullets': colors.gray[500],
             '--tw-prose-hr': colors.gray[50],
             '--tw-prose-quotes': colors.black,
             '--tw-prose-quote-borders': colors.gray[50],
