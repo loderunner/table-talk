@@ -1,11 +1,10 @@
-import { ipcMain } from 'electron';
+import { MessagePortMain } from 'electron';
 
 import { CoreMessage, streamText } from 'ai';
-import { Ollama, ProgressResponse } from 'ollama';
-import { AbortableAsyncIterator } from 'ollama/src/utils.js';
+import { Ollama } from 'ollama';
 import { OllamaProvider, createOllama } from 'ollama-ai-provider';
 
-import { mainWindow } from './main';
+type ResolveType<T> = T extends Promise<infer U> ? U : never;
 
 let client: Ollama = new Ollama();
 let provider: OllamaProvider = createOllama();
@@ -15,26 +14,28 @@ export function setEndpointURL(url: string) {
   provider = createOllama({ baseURL: `${url}/api` });
 }
 
-export async function pull(id: number, model: string) {
-  const it: AbortableAsyncIterator<ProgressResponse> | undefined = undefined;
-  function onAbort() {
-    it?.abort();
-  }
-  ipcMain.handle(`ollama.pull.abort::${id}`, onAbort);
-
+const _pullFunc = async () => client.pull({ model: '', stream: true });
+export async function pull(port: MessagePortMain, model: string) {
   try {
-    const it = await client.pull({ model, stream: true });
+    let it: ResolveType<ReturnType<typeof _pullFunc>> | undefined = undefined;
+    const onAbort = () => {
+      it?.abort();
+    };
+    port.once('message', onAbort);
+
+    it = await client.pull({ model, stream: true });
+    port.start();
+
     for await (const progress of it) {
-      mainWindow?.webContents.send(`ollama.pull.progress::${id}`, progress);
+      port.postMessage(progress);
     }
-  } catch (err) {
-    if (err instanceof Error) {
-      mainWindow?.webContents.send(`ollama.pull.error::${id}`, err.message);
-      return;
+  } catch (error) {
+    // ignore `AbortError`s
+    if (!(error instanceof DOMException && error.name === 'AbortError')) {
+      throw error;
     }
-    mainWindow?.webContents.send(`ollama.pull.error::${id}`, String(err));
   } finally {
-    ipcMain.off(`ollama.pull.abort::${id}`, onAbort);
+    port.close();
   }
 }
 
@@ -48,26 +49,32 @@ export type GenerateResponse = {
   headers: [string, string][];
   hasBody: boolean;
 };
-export function generate(id: number, { model, messages }: GenerateArgs) {
-  const stream = streamText({ model: provider(model), messages });
-  const res = stream.toDataStreamResponse();
+export async function generate(
+  port: MessagePortMain,
+  { model, messages }: GenerateArgs,
+) {
+  try {
+    port.start();
+    const stream = streamText({ model: provider(model), messages });
+    const res = stream.toDataStreamResponse();
 
-  mainWindow?.webContents.send(`ollama.generate.response::${id}`, {
-    status: res.status,
-    statusText: res.statusText,
-    headers: [...res.headers.entries()],
-    hasBody: res.body !== null,
-  });
-
-  if (res.body !== null) {
-    const body = res.body;
-    setImmediate(async () => {
-      for await (const chunk of body) {
-        mainWindow?.webContents.send(`ollama.generate.body::${id}`, chunk);
-      }
-      mainWindow?.webContents.send(`ollama.generate.end::${id}`);
+    port.postMessage({
+      type: 'response',
+      response: {
+        status: res.status,
+        statusText: res.statusText,
+        headers: [...res.headers.entries()],
+        hasBody: res.body !== null,
+      },
     });
-  } else {
-    mainWindow?.webContents.send(`ollama.generate.end::${id}`);
+
+    if (res.body !== null) {
+      const body = res.body;
+      for await (const chunk of body) {
+        port.postMessage({ type: 'chunk', chunk });
+      }
+    }
+  } finally {
+    port.close();
   }
 }

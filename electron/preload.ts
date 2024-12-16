@@ -1,65 +1,90 @@
-import { IpcRendererEvent, contextBridge, ipcRenderer } from 'electron';
+import { contextBridge, ipcRenderer } from 'electron';
 
 import { CoreMessage } from 'ai';
 import type { ProgressResponse } from 'ollama';
 
 import type { GenerateResponse } from '../electron/ollama';
 
-let requestId = 0;
-
 function setEndpointURL(url: string) {
   ipcRenderer.invoke('ollama.setEndpointURL', url);
 }
 
 async function pull(model: string, onProgress?: ProgressEventHandler) {
-  const id = requestId++;
-
-  const subscription = (
-    _event: IpcRendererEvent,
-    progress: ProgressResponse,
-  ) => {
-    onProgress?.(progress);
+  const channel = new MessageChannel();
+  const port = channel.port1;
+  const onMessage = (event: MessageEvent<ProgressResponse>) => {
+    onProgress?.(event.data);
   };
-  ipcRenderer.on(`ollama.pull.progress::${id}`, subscription);
+  const onClose = () => {
+    port.removeEventListener('message', onMessage);
+    port.removeEventListener('close', onClose);
+  };
+  port.addEventListener('message', onMessage);
+  port.addEventListener('close', onClose);
 
-  ipcRenderer.invoke('ollama.pull', id, model);
+  ipcRenderer.postMessage('ollama.pull', model, [channel.port2]);
 
+  port.start();
   return () => {
-    ipcRenderer.removeListener(`ollama.pull.progress::${id}`, subscription);
-    ipcRenderer.invoke(`ollama.pull.abort::${id}`);
+    port.postMessage('abort');
+    port.close();
   };
 }
+
+type GenerateMessage =
+  | {
+      type: 'response';
+      response: GenerateResponse;
+    }
+  | {
+      type: 'chunk';
+      chunk: Uint8Array;
+    };
 
 async function generate(
   model: string,
   messages: CoreMessage[],
   onBody: (chunk?: Uint8Array) => void,
 ) {
-  const id = requestId++;
+  const channel = new MessageChannel();
+  const port = channel.port1;
 
   const promise = new Promise<GenerateResponse>((resolve) => {
-    ipcRenderer.once(
-      `ollama.generate.response::${id}`,
-      (_event: IpcRendererEvent, res: GenerateResponse) => {
-        resolve(res);
-      },
-    );
+    const onResponse = (event: MessageEvent<GenerateMessage>) => {
+      if (event.data.type !== 'response') {
+        return;
+      }
+      resolve(event.data.response);
+      port.removeEventListener('message', onResponse);
+    };
+    port.addEventListener('message', onResponse);
   });
 
-  const subscription = (_event: IpcRendererEvent, chunk: Uint8Array) => {
-    onBody(chunk);
+  const onMessage = (event: MessageEvent<GenerateMessage>) => {
+    if (event.data.type !== 'chunk') {
+      return;
+    }
+    onBody(event.data.chunk);
   };
-  ipcRenderer.on(`ollama.generate.body::${id}`, subscription);
+  port.addEventListener('message', onMessage);
 
-  ipcRenderer.once(`ollama.generate.end::${id}`, () => {
+  const onClose = () => {
     onBody();
-    ipcRenderer.removeListener(`ollama.generate.body::${id}`, subscription);
-  });
+    port.removeEventListener('message', onMessage);
+    port.removeEventListener('close', onClose);
+  };
+  port.addEventListener('close', onClose);
 
-  ipcRenderer.invoke('ollama.generate', id, {
-    model,
-    messages,
-  });
+  ipcRenderer.postMessage(
+    'ollama.generate',
+    {
+      model,
+      messages,
+    },
+    [channel.port2],
+  );
+
+  port.start();
 
   const res = await promise;
 

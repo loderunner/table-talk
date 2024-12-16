@@ -25,6 +25,7 @@ export function OllamaProvider({ children }: Props) {
   useAsyncEffect(async () => {
     ollama.setEndpointURL(settings.ollama.url);
     const unsubscribe = await ollama.pull('llama3.2:1b', (p) => {
+      console.log('progress', p);
       setStatus(p.status);
       setCompleted(p.completed);
       setTotal(p.total);
