@@ -14,7 +14,10 @@
       "request": "attach",
       "port": 9222,
       "restart": true,
-      "webRoot": "${workspaceFolder}"
+      "webRoot": "${workspaceFolder}",
+      "sourceMapPathOverrides": {
+        "../electron/*": "${workspaceFolder}/electron/*"
+      }
     },
     {
       "name": "Main",

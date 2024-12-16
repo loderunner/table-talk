@@ -27,16 +27,20 @@ function createWindow() {
   return mainWindow;
 }
 
-let requestId = 0;
 app.on('ready', () => {
   ipcMain.handle('ollama.setEndpointURL', (_event, url: string) => {
     ollama.setEndpointURL(url);
   });
-  ipcMain.handle('ollama.pull', (_event, model: string) => {
-    const id = requestId++;
+  ipcMain.handle('ollama.pull', (_event, id: number, model: string) => {
     ollama.pull(id, model);
     return id;
   });
+  ipcMain.handle(
+    'ollama.generate',
+    (_event, id: number, args: ollama.GenerateArgs) => {
+      ollama.generate(id, args);
+    },
+  );
 
   const window = createWindow();
 

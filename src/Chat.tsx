@@ -1,110 +1,138 @@
 import { Button, Textarea } from '@headlessui/react';
+import { useChat } from 'ai/react';
 import {
-  ChangeEventHandler,
   KeyboardEventHandler,
   useCallback,
   useEffect,
   useMemo,
-  useState,
+  useRef,
 } from 'react';
 import Markdown from 'react-markdown';
 import remarkGFM from 'remark-gfm';
 
+import { GenerateResponse } from '../electron/ollama';
+
+async function fetchChat(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+): Promise<Response> {
+  const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>();
+  const writer = writable.getWriter();
+  const onBody = async (chunk?: Uint8Array) => {
+    try {
+      if (chunk === undefined) {
+        await writer.close();
+        return;
+      }
+      await writer.write(chunk);
+    } catch (error) {
+      await writer.abort(error);
+      throw error;
+    }
+  };
+
+  let res: GenerateResponse;
+  const body = init?.body;
+  try {
+    if (body === undefined || body === null) {
+      res = await ollama.generate(
+        'llama3.2:1b',
+        JSON.parse(input.toString()).messages,
+        onBody,
+      );
+    } else {
+      res = await ollama.generate(
+        'llama3.2:1b',
+        JSON.parse(body.toString()).messages,
+        onBody,
+      );
+    }
+  } catch (error) {
+    writer.abort(error);
+    throw error;
+  }
+
+  return new Response(readable, res);
+}
+
 export default function Chat() {
-  const [messages, setMessages] = useState<
-    { role: 'user' | 'assistant'; content: string }[]
-  >([]);
-  const [input, setInput] = useState('');
+  const { messages, input, handleInputChange, handleSubmit, isLoading } =
+    useChat({
+      fetch: fetchChat,
+    });
   const rows = useMemo(
     () =>
+      // Limit maximum height to 8 rows
       Math.min(
         8,
+        // Spread input string into array of characters for iteration
         [...input].reduce(
+          // For each character, increment count only if it's a newline
+          // Start count at 1 to account for the first row
           (count, char) => (char === '\n' ? count + 1 : count),
           1,
         ),
       ),
     [input],
   );
-  const [loading, setLoading] = useState(false);
 
+  const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    setMessages([
-      {
-        role: 'user',
-        content: 'Show me all users who signed up in the last month.',
-      },
-      {
-        role: 'assistant',
-        content:
-          "I've queried the database for users who signed up in the last month. Here's what I found:\n\nThere are 3 users who signed up in the last month:\n\n1. John Doe (john@example.com) - signed up on May 15, 2023\n2. Jane Smith (jane@example.com) - signed up on May 20, 2023\n3. Bob Johnson (bob@example.com) - signed up on May 25, 2023\n\nIs there anything specific you'd like to know about these users?",
-      },
-    ]);
-  }, []);
-
-  const onChange = useCallback<ChangeEventHandler<HTMLTextAreaElement>>(
-    (e) => setInput(e.target.value),
-    [],
-  );
-  const send = useCallback(async () => {
-    setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-    setInput('');
-    setLoading(false);
-  }, []);
+    ref.current?.scrollTo({
+      top: ref.current?.scrollHeight,
+      behavior: 'smooth',
+    });
+  }, [messages]);
 
   const onKeyDown = useCallback<KeyboardEventHandler<HTMLTextAreaElement>>(
     (e) => {
       if (e.code === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        send();
+        handleSubmit(e);
       }
     },
-    [send],
+    [handleSubmit],
   );
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2 p-4">
       <div className="text-xl">Chat with your Database</div>
-      <div className="flex-1 overflow-clip overflow-y-scroll">
-        <div>
-          {messages.map((message, index) => (
+      <div className="flex-1 overflow-clip overflow-y-scroll" ref={ref}>
+        {messages.map((message, index) => (
+          <div
+            key={index}
+            className={`mb-4 ${
+              message.role === 'user' ? 'text-right' : 'text-left'
+            }`}
+          >
             <div
-              key={index}
-              className={`mb-4 ${
-                message.role === 'user' ? 'text-right' : 'text-left'
+              className={`inline-block select-text rounded-lg px-4 py-2 ${
+                message.role === 'user' ? 'bg-gray-900' : 'bg-gray-300'
               }`}
             >
-              <div
-                className={`inline-block select-text rounded-lg px-4 py-2 ${
-                  message.role === 'user' ? 'bg-gray-900' : 'bg-gray-300'
-                }`}
+              <Markdown
+                className={`prose prose-high-contrast ${message.role === 'user' ? '!prose-invert' : ''}`}
+                remarkPlugins={[remarkGFM]}
               >
-                <Markdown
-                  className={`prose prose-high-contrast ${message.role === 'user' ? '!prose-invert' : ''}`}
-                  remarkPlugins={[remarkGFM]}
-                >
-                  {message.content}
-                </Markdown>
-              </div>
+                {message.content}
+              </Markdown>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
-      <div className="flex items-end gap-4">
+      <form className="flex items-end gap-4" onSubmit={handleSubmit}>
         <Textarea
           className="flex-grow resize-none"
           placeholder="Ask a question about your database..."
-          disabled={loading}
+          disabled={isLoading}
           rows={rows}
           value={input}
-          onChange={onChange}
+          onChange={handleInputChange}
           onKeyDown={onKeyDown}
         />
-        <Button onClick={send} disabled={loading}>
-          {loading ? 'Thinking...' : 'Send'}
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? 'Thinking...' : 'Send'}
         </Button>
-      </div>
+      </form>
     </div>
   );
 }
