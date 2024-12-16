@@ -14,7 +14,7 @@ function App() {
         <OllamaProvider>
           <Router hook={useHashLocation}>
             <Route path="/">
-              <div className="flex size-full select-none flex-col">
+              <div className="flex size-full flex-col">
                 <Header />
                 <Chat />
               </div>

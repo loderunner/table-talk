@@ -7,11 +7,10 @@ import {
   useMemo,
   useRef,
 } from 'react';
-import Markdown from 'react-markdown';
-import rehypeHighlight from 'rehype-highlight';
-import remarkGFM from 'remark-gfm';
 
 import { GenerateResponse } from '../electron/ollama';
+
+import Message from './Message';
 
 async function fetchChat(
   input: RequestInfo | URL,
@@ -99,29 +98,7 @@ export default function Chat() {
       <div className="text-xl">Chat with your Database</div>
       <div className="flex-1 overflow-clip overflow-y-scroll" ref={ref}>
         {messages.map((message, index) => (
-          <div
-            key={index}
-            className={`mb-4 ${
-              message.role === 'user' ? 'text-right' : 'text-left'
-            }`}
-          >
-            <div
-              className={`inline-block select-text rounded-lg px-4 py-2 ${
-                message.role === 'user' ? 'bg-gray-900' : 'bg-gray-300'
-              }`}
-            >
-              <Markdown
-                className={`prose prose-high-contrast prose-code:before:content-none prose-code:after:content-none ${message.role === 'user' ? '!prose-invert' : ''}`}
-                remarkPlugins={[remarkGFM]}
-                rehypePlugins={[rehypeHighlight]}
-                components={{
-                  pre: (props) => <pre className="hljs" {...props} />,
-                }}
-              >
-                {message.content}
-              </Markdown>
-            </div>
-          </div>
+          <Message key={index} message={message} />
         ))}
       </div>
       <form className="flex items-end gap-4" onSubmit={handleSubmit}>
