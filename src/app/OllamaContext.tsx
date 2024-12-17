@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { ReactNode, createContext, useContext, useState } from 'react';
 
-import { useSettings } from './SettingsContext';
+import { useSettings } from './SettingsProvider';
 import { useAsyncEffect } from './useAsyncEffect';
 
 type OllamaState = {
@@ -19,15 +19,11 @@ type Props = {
 export function OllamaProvider({ children }: Props) {
   const [, , settings] = useSettings();
   const [status, setStatus] = useState('');
-  const [completed, setCompleted] = useState<number>();
-  const [total, setTotal] = useState<number>();
 
   useAsyncEffect(async () => {
     ollama.setEndpointURL(settings.ollama.url);
     const unsubscribe = await ollama.pull('llama3.2:1b', (p) => {
       setStatus(p.status);
-      setCompleted(p.completed);
-      setTotal(p.total);
     });
 
     return async () => {
@@ -35,11 +31,7 @@ export function OllamaProvider({ children }: Props) {
     };
   }, [settings.ollama.url]);
 
-  return (
-    <Context value={{ status, downloaded: completed, total }}>
-      {children}
-    </Context>
-  );
+  return <Context value={{ status }}>{children}</Context>;
 }
 
 export function useOllama() {

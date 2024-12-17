@@ -5,6 +5,8 @@ import type { ProgressResponse } from 'ollama';
 
 import type { GenerateResponse } from './ollama';
 
+import type { PartialSettings } from '@/app/SettingsProvider';
+
 function setEndpointURL(url: string) {
   ipcRenderer.invoke('ollama.setEndpointURL', url);
 }
@@ -107,3 +109,20 @@ const ollamaBridge = {
 export type Ollama = typeof ollamaBridge;
 
 contextBridge.exposeInMainWorld('ollama', ollamaBridge);
+
+async function save(prefs: PartialSettings) {
+  await ipcRenderer.invoke('preferences.save', prefs);
+}
+
+async function load(): Promise<PartialSettings> {
+  return await ipcRenderer.invoke('preferences.load');
+}
+
+const preferencesBridge = {
+  save,
+  load,
+};
+
+export type Preferences = typeof preferencesBridge;
+
+contextBridge.exposeInMainWorld('preferences', preferencesBridge);

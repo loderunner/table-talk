@@ -3,6 +3,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import * as ollama from './ollama';
+import * as preferences from './preferences';
+
+import { PartialSettings } from '@/app/SettingsProvider';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -36,6 +39,13 @@ app.on('ready', () => {
   });
   ipcMain.on('ollama.generate', (event, args: ollama.GenerateArgs) => {
     ollama.generate(event.ports[0], args);
+  });
+
+  ipcMain.handle('preferences.save', (_event, prefs: PartialSettings) => {
+    preferences.save(prefs);
+  });
+  ipcMain.handle('preferences.load', (_event) => {
+    return preferences.load();
   });
 
   const window = createWindow();

@@ -9,22 +9,26 @@ import {
   useState,
 } from 'react';
 
+import { useAsyncEffect } from './useAsyncEffect';
+
 const deepmerge = newDeepmerge();
 
 type DeepPartial<T> = T extends object
   ? Partial<{ [K in keyof T]: DeepPartial<T[K]> }>
   : T;
 
-type Settings = {
+export type Settings = {
   sqlite?: { filename: string };
   ollama: {
     url: string;
   };
 };
 
+export type PartialSettings = DeepPartial<Settings>;
+
 type SettingsContext = [
-  DeepPartial<Settings>,
-  Dispatch<SetStateAction<DeepPartial<Settings>>>,
+  PartialSettings,
+  Dispatch<SetStateAction<PartialSettings>>,
   Settings,
 ];
 
@@ -40,13 +44,28 @@ const Context = createContext<SettingsContext>([
   { ...defaultSettings },
 ]);
 
-export function SettingsProvider({ children }: { children: ReactNode }) {
-  const [settings, setSettings] = useState<DeepPartial<Settings>>({});
+let settingsPromise: Promise<PartialSettings> | undefined = undefined;
+export function loadSettings(): Promise<PartialSettings> {
+  if (settingsPromise === undefined) {
+    settingsPromise = preferences.load().catch(() => ({}));
+  }
+  return settingsPromise;
+}
+
+type Props = {
+  initialSettings: PartialSettings;
+  children: ReactNode;
+};
+
+export default function SettingsProvider({ children, initialSettings }: Props) {
+  const [settings, setSettings] =
+    useState<DeepPartial<Settings>>(initialSettings);
+  useAsyncEffect(() => preferences.save(settings), [settings]);
   return (
     <Context
       value={[
         settings,
-        (s) => setSettings(s),
+        setSettings,
         deepmerge(settings, defaultSettings) as Settings,
       ]}
     >
