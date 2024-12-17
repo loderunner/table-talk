@@ -3,7 +3,7 @@ import { contextBridge, ipcRenderer } from 'electron';
 import { CoreMessage } from 'ai';
 import type { ProgressResponse } from 'ollama';
 
-import type { GenerateResponse } from '../electron/ollama';
+import type { GenerateResponse } from './ollama';
 
 function setEndpointURL(url: string) {
   ipcRenderer.invoke('ollama.setEndpointURL', url);

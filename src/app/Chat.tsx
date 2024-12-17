@@ -8,9 +8,9 @@ import {
   useRef,
 } from 'react';
 
-import { GenerateResponse } from '../electron/ollama';
-
 import Message from './Message';
+
+import { GenerateResponse } from '@/electron/ollama';
 
 async function fetchChat(
   input: RequestInfo | URL,

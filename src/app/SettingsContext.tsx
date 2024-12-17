@@ -16,6 +16,7 @@ type DeepPartial<T> = T extends object
   : T;
 
 type Settings = {
+  sqlite?: { filename: string };
   ollama: {
     url: string;
   };
