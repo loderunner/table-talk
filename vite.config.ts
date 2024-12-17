@@ -9,6 +9,9 @@ export default defineConfig({
   plugins: [
     svgr(),
     Unfonts({
+      fontsource: {
+        families: ['Sometype Mono Variable'],
+      },
       custom: {
         families: [
           {

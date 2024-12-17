@@ -18,6 +18,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Switzer', ...defaultTheme.fontFamily.sans],
+        mono: ['Sometype Mono Variable', ...defaultTheme.fontFamily.mono],
       },
       typography: ({ theme }) => ({
         'high-contrast': {

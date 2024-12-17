@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@fastify/deepmerge": "2.0.0",
+    "@fontsource-variable/sometype-mono": "5.1.0",
     "@headlessui/react": "2.2.0",
     "@phosphor-icons/react": "2.1.7",
     "ai": "4.0.18",
