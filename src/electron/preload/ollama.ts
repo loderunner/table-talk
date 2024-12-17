@@ -1,15 +1,15 @@
-import { OpenDialogOptions, contextBridge, ipcRenderer } from 'electron';
+import { ipcRenderer } from 'electron';
 
 import { CoreMessage } from 'ai';
-import type { ProgressResponse } from 'ollama';
+import { ProgressResponse } from 'ollama';
 
-import type { GenerateResponse } from './ollama';
-
-import type { PartialSettings } from '@/app/SettingsProvider';
+import { GenerateResponse } from '@/electron/main/ollama';
 
 function setEndpointURL(url: string) {
   ipcRenderer.invoke('ollama.setEndpointURL', url);
 }
+
+type ProgressEventHandler = (progress: ProgressResponse) => void;
 
 async function pull(model: string, onProgress?: ProgressEventHandler) {
   const channel = new MessageChannel();
@@ -98,36 +98,12 @@ async function generate(
   return res;
 }
 
-export type ProgressEventHandler = (progress: ProgressResponse) => void;
-
 const ollamaBridge = {
   setEndpointURL,
   pull,
   generate,
 };
-contextBridge.exposeInMainWorld('ollama', ollamaBridge);
+
 export type Ollama = typeof ollamaBridge;
 
-async function save(prefs: PartialSettings) {
-  await ipcRenderer.invoke('preferences.save', prefs);
-}
-
-async function load(): Promise<PartialSettings> {
-  return await ipcRenderer.invoke('preferences.load');
-}
-
-const preferencesBridge = {
-  save,
-  load,
-};
-contextBridge.exposeInMainWorld('preferences', preferencesBridge);
-export type Preferences = typeof preferencesBridge;
-
-const dialogBridge = {
-  showOpenDialog: (
-    options?: OpenDialogOptions,
-  ): Promise<string[] | undefined> =>
-    ipcRenderer.invoke('dialog.showOpenDialog', options),
-};
-contextBridge.exposeInMainWorld('dialog', dialogBridge);
-export type Dialog = typeof dialogBridge;
+export default ollamaBridge;

@@ -26,7 +26,7 @@ export default defineConfig({
     react(),
     electron({
       main: {
-        entry: './src/electron/main.ts',
+        entry: './src/electron/main/main.ts',
         onstart:
           process.env.NODE_ENV === 'development'
             ? ({ startup }) => {
@@ -45,7 +45,7 @@ export default defineConfig({
         },
       },
       preload: {
-        input: './src/electron/preload.ts',
+        input: './src/electron/preload/index.ts',
         onstart:
           process.env.NODE_ENV === 'development'
             ? ({ reload }) => {

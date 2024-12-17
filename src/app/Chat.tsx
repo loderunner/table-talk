@@ -10,7 +10,7 @@ import {
 
 import Message from './Message';
 
-import { GenerateResponse } from '@/electron/ollama';
+import { GenerateResponse } from '@/electron/main/ollama';
 
 async function fetchChat(
   input: RequestInfo | URL,
