@@ -11,11 +11,16 @@ function hexToRgb(hex) {
   return `${r} ${g} ${b}`;
 }
 
+defaultTheme.spacing;
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx,js,jsx}'],
   theme: {
     extend: {
+      spacing: Object.fromEntries(
+        Array.from({ length: 8 }, (_, i) => [i * 16 + 112, `${i * 4 + 28}rem`]),
+      ),
       fontFamily: {
         sans: ['Switzer', ...defaultTheme.fontFamily.sans],
         mono: ['Sometype Mono Variable', ...defaultTheme.fontFamily.mono],

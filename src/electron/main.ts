@@ -1,4 +1,4 @@
-import { BrowserWindow, app, ipcMain } from 'electron';
+import { BrowserWindow, app, dialog, ipcMain } from 'electron';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -47,6 +47,10 @@ app.on('ready', () => {
   ipcMain.handle('preferences.load', (_event) => {
     return preferences.load();
   });
+
+  ipcMain.handle('dialog.showOpenDialog', (_event, options) =>
+    dialog.showOpenDialogSync(options),
+  );
 
   const window = createWindow();
 

@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron';
+import { OpenDialogOptions, contextBridge, ipcRenderer } from 'electron';
 
 import { CoreMessage } from 'ai';
 import type { ProgressResponse } from 'ollama';
@@ -105,10 +105,8 @@ const ollamaBridge = {
   pull,
   generate,
 };
-
-export type Ollama = typeof ollamaBridge;
-
 contextBridge.exposeInMainWorld('ollama', ollamaBridge);
+export type Ollama = typeof ollamaBridge;
 
 async function save(prefs: PartialSettings) {
   await ipcRenderer.invoke('preferences.save', prefs);
@@ -122,7 +120,14 @@ const preferencesBridge = {
   save,
   load,
 };
-
+contextBridge.exposeInMainWorld('preferences', preferencesBridge);
 export type Preferences = typeof preferencesBridge;
 
-contextBridge.exposeInMainWorld('preferences', preferencesBridge);
+const dialogBridge = {
+  showOpenDialog: (
+    options?: OpenDialogOptions,
+  ): Promise<string[] | undefined> =>
+    ipcRenderer.invoke('dialog.showOpenDialog', options),
+};
+contextBridge.exposeInMainWorld('dialog', dialogBridge);
+export type Dialog = typeof dialogBridge;
