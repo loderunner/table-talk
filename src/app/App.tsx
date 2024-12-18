@@ -7,6 +7,7 @@ import Header from './Header';
 import { OllamaProvider } from './OllamaContext.tsx';
 import Settings from './Settings';
 import { loadSettings } from './SettingsProvider.tsx';
+import { SQLiteProvider } from './SqliteContext.tsx';
 
 const LazySettingsProvider = lazy(async () => {
   const initialSettings = await loadSettings();
@@ -26,17 +27,19 @@ function App() {
       <Suspense>
         <LazySettingsProvider>
           <OllamaProvider>
-            <Router hook={useHashLocation}>
-              <Route path="/">
-                <div className="flex size-full flex-col">
-                  <Header />
-                  <Chat />
-                </div>
-              </Route>
-              <Route path="/settings">
-                <Settings />
-              </Route>{' '}
-            </Router>
+            <SQLiteProvider>
+              <Router hook={useHashLocation}>
+                <Route path="/">
+                  <div className="flex size-full flex-col">
+                    <Header />
+                    <Chat />
+                  </div>
+                </Route>
+                <Route path="/settings">
+                  <Settings />
+                </Route>{' '}
+              </Router>
+            </SQLiteProvider>
           </OllamaProvider>
         </LazySettingsProvider>
       </Suspense>

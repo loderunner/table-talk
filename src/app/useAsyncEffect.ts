@@ -1,7 +1,7 @@
 import { DependencyList, useEffect } from 'react';
 
 type AsyncDestructor = () => Promise<void>;
-type AsyncEffectCallback = () => Promise<void> | Promise<AsyncDestructor>;
+type AsyncEffectCallback = () => Promise<void | AsyncDestructor>;
 
 export function useAsyncEffect(
   callback: AsyncEffectCallback,

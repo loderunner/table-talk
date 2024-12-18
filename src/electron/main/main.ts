@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 import * as ollama from './ollama';
 import * as preferences from './preferences';
+import * as sqlite from './sqlite';
 
 import { PartialSettings } from '@/app/SettingsProvider';
 
@@ -46,6 +47,14 @@ app.on('ready', () => {
   });
   ipcMain.handle('preferences.load', (_event) => {
     return preferences.load();
+  });
+
+  ipcMain.handle('sqlite.init', (_event, location: string) => {
+    sqlite.init(location);
+  });
+
+  ipcMain.handle('sqlite.getSchema', (_event) => {
+    return sqlite.getSchema();
   });
 
   ipcMain.handle('dialog.showOpenDialog', (_event, options) =>

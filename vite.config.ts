@@ -41,11 +41,14 @@ export default defineConfig({
         vite: {
           build: {
             sourcemap: true,
+            rollupOptions: {
+              external: ['better-sqlite3'],
+            },
           },
         },
       },
       preload: {
-        input: './src/electron/preload/index.ts',
+        input: './src/electron/preload/preload.ts',
         onstart:
           process.env.NODE_ENV === 'development'
             ? ({ reload }) => {

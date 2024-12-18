@@ -30,6 +30,9 @@ export default function Settings() {
 
   const onSave = useCallback(() => {
     setSettings({
+      sqlite: {
+        filename: sqliteFilename,
+      },
       ollama: {
         url: ollamaURL,
       },
@@ -45,7 +48,7 @@ export default function Settings() {
           <Label className="block">Filename</Label>
           <div className="flex gap-2">
             <Input
-              className="w-128 block"
+              className="block w-128"
               name="sqlite_filename"
               value={sqliteFilename}
               placeholder="Enter path to SQLite database..."
@@ -65,7 +68,7 @@ export default function Settings() {
         <Field>
           <Label className="block">Endpoint URL</Label>
           <Input
-            className="w-128 block"
+            className="block w-128"
             name="ollama_endpoint_url"
             value={ollamaURL}
             placeholder={defaultSettings.ollama.url}

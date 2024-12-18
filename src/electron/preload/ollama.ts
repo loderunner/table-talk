@@ -5,8 +5,8 @@ import { ProgressResponse } from 'ollama';
 
 import { GenerateResponse } from '@/electron/main/ollama';
 
-function setEndpointURL(url: string) {
-  ipcRenderer.invoke('ollama.setEndpointURL', url);
+async function setEndpointURL(url: string) {
+  await ipcRenderer.invoke('ollama.setEndpointURL', url);
 }
 
 type ProgressEventHandler = (progress: ProgressResponse) => void;

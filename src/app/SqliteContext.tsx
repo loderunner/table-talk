@@ -4,38 +4,37 @@ import { ReactNode, createContext, useContext, useState } from 'react';
 import { useSettings } from './SettingsProvider';
 import { useAsyncEffect } from './useAsyncEffect';
 
-type OllamaState = {
-  status?: string;
+type SQLiteState = {
+  schema?: string;
   error?: string;
 };
 
-const Context = createContext<OllamaState>({});
+const Context = createContext<SQLiteState>({});
 
 type Props = {
   children: ReactNode;
 };
 
-export function OllamaProvider({ children }: Props) {
+export function SQLiteProvider({ children }: Props) {
   const [, , settings] = useSettings();
-  const [status, setStatus] = useState<string>();
+  const [schema, setSchema] = useState<string>();
   const [error, setError] = useState<string>();
 
   useAsyncEffect(async () => {
-    try {
-      await ollama.setEndpointURL(settings.ollama.url);
-      const unsubscribe = await ollama.pull('llama3.2:1b', (p) => {
-        setStatus(p.status);
-      });
+    if (settings.sqlite?.filename === undefined) {
+      return;
+    }
 
-      return async () => {
-        await unsubscribe();
-      };
+    try {
+      await sqlite.init(settings.sqlite?.filename);
+      const schema = await sqlite.getSchema();
+      setSchema(schema);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     }
-  }, [settings.ollama.url]);
+  }, [settings.sqlite?.filename]);
 
-  return <Context value={{ status, error }}>{children}</Context>;
+  return <Context value={{ error, schema }}>{children}</Context>;
 }
 
 export function useOllama() {
