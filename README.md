@@ -4,6 +4,8 @@ _Your data has something to say._
 
 TableTalk transforms your database into a conversation partner. Ask questions in plain English, get answers that make sense. No more context-switching between query tools – just you and your data, having a chat.
 
+![TableTalk screenshot](./screenshot.png)
+
 ## Why TableTalk?
 
 Ever wished you could just ask your database what's going on? That's TableTalk. We've taken the power of SQL and wrapped it in something that feels as natural as messaging a friend. Perfect for:
