@@ -9,6 +9,7 @@ import {
 } from 'react';
 
 import Message from './Message';
+import { model } from './OllamaContext';
 
 import { GenerateResponse } from '@/electron/main/ollama';
 
@@ -36,13 +37,13 @@ async function fetchChat(
   try {
     if (body === undefined || body === null) {
       res = await ollama.generate(
-        'llama3.2:1b',
+        model,
         JSON.parse(input.toString()).messages,
         onBody,
       );
     } else {
       res = await ollama.generate(
-        'llama3.2:1b',
+        model,
         JSON.parse(body.toString()).messages,
         onBody,
       );
@@ -96,10 +97,15 @@ export default function Chat() {
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2 p-4">
       <div className="text-xl">Chat with your Database</div>
-      <div className="flex-1 overflow-clip overflow-y-scroll" ref={ref}>
-        {messages.map((message, index) => (
-          <Message key={index} message={message} />
-        ))}
+      <div
+        className="flex flex-1 flex-col gap-4 overflow-clip overflow-y-scroll"
+        ref={ref}
+      >
+        {messages
+          .filter((message) => message.content !== '')
+          .map((message, index) => (
+            <Message key={index} message={message} />
+          ))}
       </div>
       <form className="flex items-end gap-4" onSubmit={handleSubmit}>
         <Textarea

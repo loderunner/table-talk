@@ -37,6 +37,6 @@ export function SQLiteProvider({ children }: Props) {
   return <Context value={{ error, schema }}>{children}</Context>;
 }
 
-export function useOllama() {
+export function useSQLite() {
   return useContext(Context);
 }

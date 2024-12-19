@@ -4,6 +4,8 @@ import { ReactNode, createContext, useContext, useState } from 'react';
 import { useSettings } from './SettingsProvider';
 import { useAsyncEffect } from './useAsyncEffect';
 
+export const model = 'llama3.2';
+
 type OllamaState = {
   status?: string;
   error?: string;
@@ -23,7 +25,7 @@ export function OllamaProvider({ children }: Props) {
   useAsyncEffect(async () => {
     try {
       await ollama.setEndpointURL(settings.ollama.url);
-      const unsubscribe = await ollama.pull('llama3.2:1b', (p) => {
+      const unsubscribe = await ollama.pull(model, (p) => {
         setStatus(p.status);
       });
 
