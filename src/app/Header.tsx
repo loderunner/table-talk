@@ -12,7 +12,10 @@ export default function Header() {
       <div className="flex items-center justify-between">
         <h1 className="flex items-center gap-1 text-3xl font-bold">
           <Database />
-          SQL Chatbot
+          TableTalk
+          <span className="text-xl font-thin italic text-gray-400">
+            {' — '}Your data has something to say.
+          </span>
         </h1>
         <div className="flex gap-2">
           {status === 'success' || (

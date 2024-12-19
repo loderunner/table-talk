@@ -1,8 +1,9 @@
 {
-  "name": "toto-electron",
+  "name": "table-talk",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "license": "Apache-2.0",
   "main": "dist-electron/main.js",
   "scripts": {
     "postinstall": "electron-rebuild --only better-sqlite3",
@@ -43,6 +44,7 @@
     "@electron-forge/plugin-auto-unpack-natives": "7.6.0",
     "@electron-forge/plugin-fuses": "7.6.0",
     "@electron/fuses": "1.8.0",
+    "@electron/rebuild": "3.7.1",
     "@eslint/js": "9.16.0",
     "@tailwindcss/typography": "0.5.15",
     "@types/better-sqlite3": "7.6.12",

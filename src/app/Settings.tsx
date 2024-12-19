@@ -38,7 +38,7 @@ export default function Settings() {
       },
     });
     setLocation('/');
-  }, [ollamaURL, setLocation, setSettings]);
+  }, [ollamaURL, setLocation, setSettings, sqliteFilename]);
 
   return (
     <form className="p-4" onSubmit={onSave}>

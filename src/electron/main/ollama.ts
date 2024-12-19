@@ -18,7 +18,7 @@ export function setEndpointURL(url: string) {
   provider = createOpenAI({
     baseURL: `${url}/v1`,
     apiKey: 'ollama',
-    compatibility: 'compatible',
+    compatibility: 'strict',
   });
 }
 
@@ -69,7 +69,7 @@ ${schema}
 \`\`\`
 
 Perform the best SQL query that best answers the user's request If the query is
-a SELECT, use \`queryRows\`. If the query is a PRAGMA, use \`pragma\`. Otherwise, use
+a SELECT, use \`select\`. Otherwise, use
 \`execute\`. Respond with a complete SQL query. Use JOINs if needed. Avoid subqueries.
 
 Answer the user's request using the results from the tool call. Do not explain the
@@ -89,22 +89,29 @@ export async function generate(
       model: provider(model),
       messages: [systemSQLMessage(schema), ...messages],
       tools: {
-        queryRows: {
+        select: {
           type: 'function',
           description:
             'Run the SQL query against the database and return the rows.',
-          parameters: z.object({
-            sql: z.string().describe('the SQL statement to execute.'),
-          }),
+          parameters: z
+            .object({
+              sql: z.string().describe('the SQL statement to execute.'),
+              // params: z
+              //   .array()
+              //   .describe('The parameters to bind to the query'),
+            })
+            .strict(),
           execute: async ({ sql }) => sqlite.select(sql) ?? 'No data.',
         },
         execute: {
           type: 'function',
           description:
             'Execute the SQL statement against the database. No return data.',
-          parameters: z.object({
-            sql: z.string().describe('the SQL statement to execute.'),
-          }),
+          parameters: z
+            .object({
+              sql: z.string().describe('the SQL statement to execute.'),
+            })
+            .strict(),
           execute: async ({ sql }) => sqlite.execute(sql) ?? 'No data.',
         },
         // pragma: {

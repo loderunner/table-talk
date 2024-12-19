@@ -24,13 +24,16 @@ export type SQLError = {
   error: string;
 };
 
-export function select(sql: string): unknown[] | SQLError | void {
+export function select(
+  sql: string,
+  ...params: any[]
+): unknown[] | SQLError | void {
   if (db === undefined) {
     return;
   }
   try {
     const stmt = db.prepare(sql);
-    const rows = stmt.all();
+    const rows = stmt.all(...params);
     return rows;
   } catch (err) {
     if (err instanceof Error) {
@@ -40,13 +43,16 @@ export function select(sql: string): unknown[] | SQLError | void {
   }
 }
 
-export function execute(sql: string): { error: string } | void {
+export function execute(
+  sql: string,
+  ...params: any[]
+): { error: string } | void {
   if (db === undefined) {
     return;
   }
   try {
     const stmt = db.prepare(sql);
-    stmt.run();
+    stmt.run(...params);
   } catch (err) {
     if (err instanceof Error) {
       return { error: err.message };
