@@ -68,9 +68,13 @@ function systemSQLMessage(schema: string): CoreMessage {
 ${schema}
 \`\`\`
 
-Perform the best SQL query that best answers the user's request If the query is
-a SELECT, use \`select\`. Otherwise, use
-\`execute\`. Respond with a complete SQL query. Use JOINs if needed. Avoid subqueries.
+Perform the SQL query that best answers the user's request.
+
+If the query is a SELECT, use \`select\`. Otherwise, use \`execute\`. Respond
+with a complete SQL query. Use JOINs if needed. Avoid subqueries.
+
+If no SQL query is required, respond in plain language. If more information is
+required to perform the query, ask the necessary follow-up questions.
 
 Answer the user's request using the results from the tool call. Do not explain the
 query, nor any SQL details. Answer in natural language.`,
@@ -96,9 +100,6 @@ export async function generate(
           parameters: z
             .object({
               sql: z.string().describe('the SQL statement to execute.'),
-              // params: z
-              //   .array()
-              //   .describe('The parameters to bind to the query'),
             })
             .strict(),
           execute: async ({ sql }) => sqlite.select(sql) ?? 'No data.',
@@ -114,15 +115,6 @@ export async function generate(
             .strict(),
           execute: async ({ sql }) => sqlite.execute(sql) ?? 'No data.',
         },
-        // pragma: {
-        //   type: 'function',
-        //   description:
-        //     'Execute the SQLite pragma against the database and return its result. Example usage: `pragma("cache_size = 32000")`',
-        //   parameters: z.object({
-        //     pragma: z.string().describe('the pragma to execute'),
-        //   }),
-        //   execute: async ({ pragma }) => sqlite.pragma(pragma) ?? 'No data.',
-        // },
       },
       maxSteps: 10,
       temperature: 1,
