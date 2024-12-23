@@ -1,4 +1,4 @@
-import sqlite, { Database } from 'better-sqlite3';
+import sqlite, { Database, RunResult } from 'better-sqlite3';
 
 let db: Database | undefined = undefined;
 
@@ -24,40 +24,31 @@ export type SQLError = {
   error: string;
 };
 
-export function select(
-  sql: string,
-  ...params: any[]
-): unknown[] | SQLError | void {
+export function select(sql: string, ...params: any[]): unknown[] | SQLError {
   if (db === undefined) {
-    return;
+    return { error: 'No database.' };
   }
   try {
     const stmt = db.prepare(sql);
     const rows = stmt.all(...params);
     return rows;
   } catch (err) {
-    if (err instanceof Error) {
-      return { error: err.message };
-    }
-    return { error: String(err) };
+    return { error: err instanceof Error ? err.message : String(err) };
   }
 }
 
 export function execute(
   sql: string,
   ...params: any[]
-): { error: string } | void {
+): RunResult | { error: string } {
   if (db === undefined) {
-    return;
+    return { error: 'No database.' };
   }
   try {
     const stmt = db.prepare(sql);
-    stmt.run(...params);
+    return stmt.run(...params);
   } catch (err) {
-    if (err instanceof Error) {
-      return { error: err.message };
-    }
-    return { error: String(err) };
+    return { error: err instanceof Error ? err.message : String(err) };
   }
 }
 

@@ -77,13 +77,20 @@ export default function Chat() {
     [input],
   );
 
-  const ref = useRef<HTMLDivElement>(null);
+  const messagesDivRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    ref.current?.scrollTo({
-      top: ref.current?.scrollHeight,
+    messagesDivRef.current?.scrollTo({
+      top: messagesDivRef.current?.scrollHeight,
       behavior: 'smooth',
     });
   }, [messages]);
+
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    if (!isLoading) {
+      inputRef?.current?.focus();
+    }
+  }, [isLoading]);
 
   const onKeyDown = useCallback<KeyboardEventHandler<HTMLTextAreaElement>>(
     (e) => {
@@ -99,7 +106,7 @@ export default function Chat() {
       <div className="text-xl">Chat with your Database</div>
       <div
         className="flex flex-1 flex-col gap-4 overflow-clip overflow-y-scroll"
-        ref={ref}
+        ref={messagesDivRef}
       >
         {messages
           .filter((message) => message.content !== '')
@@ -109,6 +116,7 @@ export default function Chat() {
       </div>
       <form className="flex items-end gap-4" onSubmit={handleSubmit}>
         <Textarea
+          ref={inputRef}
           className="flex-grow resize-none"
           placeholder="Ask a question about your database..."
           disabled={isLoading}

@@ -1,10 +1,9 @@
 import { MessagePortMain } from 'electron';
 
 import { createOpenAI } from '@ai-sdk/openai';
-import { CoreMessage, streamText } from 'ai';
+import { CoreMessage, generateText, streamText } from 'ai';
 import { Ollama } from 'ollama';
 import { OllamaProvider, createOllama } from 'ollama-ai-provider';
-import { z } from 'zod';
 
 import * as sqlite from './sqlite';
 
@@ -68,16 +67,39 @@ function systemSQLMessage(schema: string): CoreMessage {
 ${schema}
 \`\`\`
 
-Perform the SQL query that best answers the user's request.
+Respond with the SQL query that best answers the user's request. Use JOIN if
+needed. Avoid subqueries. Respond only with the SQL query.`,
+  };
+}
 
-If the query is a SELECT, use \`select\`. Otherwise, use \`execute\`. Respond
-with a complete SQL query. Use JOINs if needed. Avoid subqueries.
+function systemExplainMessage(schema: string): CoreMessage {
+  return {
+    role: 'system',
+    content: `Given the following SQL schema:
 
-If no SQL query is required, respond in plain language. If more information is
-required to perform the query, ask the necessary follow-up questions.
+\`\`\`sql
+${schema}
+\`\`\`
 
-Answer the user's request using the results from the tool call. Do not explain the
-query, nor any SQL details. Answer in natural language.`,
+Explain the results of the latest query in plain language. Do not give
+SQL-related details. Do not explain the query.`,
+  };
+}
+
+function userQueryMessage(query: string, results: any): CoreMessage {
+  return {
+    role: 'user',
+    content: `## Query
+
+\`\`\`sql
+${query}
+\`\`\`
+
+## Results
+
+\`\`\`
+${JSON.stringify(results)}
+\`\`\``,
   };
 }
 
@@ -89,35 +111,25 @@ export async function generate(
     port.start();
     const schema = sqlite.getSchema() ?? '';
 
-    const stream = streamText({
+    const query = await generateText({
       model: provider(model),
       messages: [systemSQLMessage(schema), ...messages],
-      tools: {
-        select: {
-          type: 'function',
-          description:
-            'Run the SQL query against the database and return the rows.',
-          parameters: z
-            .object({
-              sql: z.string().describe('the SQL statement to execute.'),
-            })
-            .strict(),
-          execute: async ({ sql }) => sqlite.select(sql) ?? 'No data.',
-        },
-        execute: {
-          type: 'function',
-          description:
-            'Execute the SQL statement against the database. No return data.',
-          parameters: z
-            .object({
-              sql: z.string().describe('the SQL statement to execute.'),
-            })
-            .strict(),
-          execute: async ({ sql }) => sqlite.execute(sql) ?? 'No data.',
-        },
-      },
-      maxSteps: 10,
-      temperature: 1,
+    });
+
+    let res: any;
+    if (query.text.startsWith('SELECT')) {
+      res = sqlite.select(query.text);
+    } else {
+      res = sqlite.execute(query.text);
+    }
+
+    const stream = streamText({
+      model: provider(model),
+      messages: [
+        systemExplainMessage(schema),
+        ...messages,
+        userQueryMessage(query.text, res),
+      ],
     });
 
     const explainRes = stream.toDataStreamResponse();
@@ -135,7 +147,6 @@ export async function generate(
     if (explainRes.body !== null) {
       const body = explainRes.body;
       for await (const chunk of body) {
-        console.log(new TextDecoder().decode(chunk));
         port.postMessage({ type: 'chunk', chunk });
       }
     }
