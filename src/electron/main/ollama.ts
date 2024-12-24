@@ -1,7 +1,13 @@
 import { MessagePortMain } from 'electron';
 
 import { createOpenAI } from '@ai-sdk/openai';
-import { CoreMessage, generateText, streamText } from 'ai';
+import {
+  CoreMessage,
+  createDataStreamResponse,
+  generateText,
+  streamText,
+} from 'ai';
+import { RunResult } from 'better-sqlite3';
 import { Ollama } from 'ollama';
 import { OllamaProvider, createOllama } from 'ollama-ai-provider';
 
@@ -68,7 +74,8 @@ ${schema}
 \`\`\`
 
 Respond with the SQL query that best answers the user's request. Use JOIN if
-needed. Avoid subqueries. Respond only with the SQL query.`,
+needed. Avoid subqueries. Respond only with SQL. Do not use markdown. Do not use
+plain language.`,
   };
 }
 
@@ -81,8 +88,8 @@ function systemExplainMessage(schema: string): CoreMessage {
 ${schema}
 \`\`\`
 
-Explain the results of the latest query in plain language. Do not give
-SQL-related details. Do not explain the query.`,
+Answer the user's question in plain language. Do not give SQL-related details.
+Do not explain the query. Respond with Markdown.`,
   };
 }
 
@@ -116,23 +123,31 @@ export async function generate(
       messages: [systemSQLMessage(schema), ...messages],
     });
 
-    let res: any;
+    let res: unknown[] | RunResult | sqlite.SQLError;
     if (query.text.startsWith('SELECT')) {
       res = sqlite.select(query.text);
     } else {
       res = sqlite.execute(query.text);
     }
 
-    const stream = streamText({
-      model: provider(model),
-      messages: [
-        systemExplainMessage(schema),
-        ...messages,
-        userQueryMessage(query.text, res),
-      ],
-    });
+    const explainRes = createDataStreamResponse({
+      execute: (dataStream) => {
+        dataStream.writeMessageAnnotation({ query: query.text });
+        dataStream.writeMessageAnnotation({ results: res as any });
 
-    const explainRes = stream.toDataStreamResponse();
+        const textStream = streamText({
+          model: provider(model),
+          messages: [
+            systemExplainMessage(schema),
+            ...messages.slice(0, -1),
+            userQueryMessage(query.text, res),
+            messages.at(-1)!,
+          ],
+        });
+
+        textStream.mergeIntoDataStream(dataStream);
+      },
+    });
 
     port.postMessage({
       type: 'response',

@@ -8,6 +8,7 @@ import {
   useRef,
 } from 'react';
 
+import Annotations from './Annotations';
 import Message from './Message';
 import { model } from './OllamaContext';
 
@@ -105,14 +106,17 @@ export default function Chat() {
     <div className="flex min-h-0 flex-1 flex-col gap-2 p-4">
       <div className="text-xl">Chat with your Database</div>
       <div
-        className="flex flex-1 flex-col gap-4 overflow-clip overflow-y-scroll"
+        className="flex flex-1 flex-col overflow-clip overflow-y-scroll"
         ref={messagesDivRef}
       >
         {messages
           .filter((message) => message.content !== '')
-          .map((message, index) => (
-            <Message key={index} message={message} />
-          ))}
+          .flatMap((message, index) => [
+            message.annotations ? (
+              <Annotations annotations={message.annotations} />
+            ) : null,
+            <Message key={index} message={message} />,
+          ])}
       </div>
       <form className="flex items-end gap-4" onSubmit={handleSubmit}>
         <Textarea
@@ -125,7 +129,7 @@ export default function Chat() {
           onChange={handleInputChange}
           onKeyDown={onKeyDown}
         />
-        <Button type="submit" disabled={isLoading}>
+        <Button type="submit" disabled={isLoading || input.length === 0}>
           {isLoading ? 'Thinking...' : 'Send'}
         </Button>
       </form>

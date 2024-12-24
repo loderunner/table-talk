@@ -10,58 +10,38 @@ export function getSchema() {
   if (db === undefined) {
     return;
   }
-  const stmt = db.prepare<[], { sql: string | null }>(
-    'SELECT sql FROM sqlite_master',
+  const stmt = db.prepare<[], { sql: string }>(
+    'SELECT sql FROM sqlite_master WHERE sql IS NOT NULL',
   );
   const rows = stmt.all();
-  return rows
-    .filter((row) => row.sql !== null)
-    .map((row) => row.sql)
-    .join('\n');
+  return rows.map((row) => row.sql).join('\n');
 }
 
 export type SQLError = {
   error: string;
 };
 
-export function select(sql: string, ...params: any[]): unknown[] | SQLError {
+export function select(sql: string): unknown[] | SQLError {
   if (db === undefined) {
-    return { error: 'No database.' };
+    return { error: 'no database connection' };
   }
   try {
     const stmt = db.prepare(sql);
-    const rows = stmt.all(...params);
+    const rows = stmt.all();
     return rows;
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
 }
 
-export function execute(
-  sql: string,
-  ...params: any[]
-): RunResult | { error: string } {
+export function execute(sql: string): RunResult | SQLError {
   if (db === undefined) {
-    return { error: 'No database.' };
+    return { error: 'no database connection' };
   }
   try {
     const stmt = db.prepare(sql);
-    return stmt.run(...params);
+    return stmt.run();
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
-  }
-}
-
-export function pragma(sql: string): unknown[] | SQLError | void {
-  if (db === undefined) {
-    return;
-  }
-  try {
-    return db.pragma(sql) as unknown[];
-  } catch (err) {
-    if (err instanceof Error) {
-      return { error: err.message };
-    }
-    return { error: String(err) };
   }
 }
